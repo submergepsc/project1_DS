@@ -58,7 +58,7 @@ QString MainWindow::formatNumber(long double number) const {
 }
 
 void MainWindow::buildPolynomialA() {
-    QString text = ui->inputA->text();
+    QString text = ui->inputA->text().trimmed();
     if (polynomialA.parseFromString(text)) {
         hasA = true;
         appendMessage(tr("多项式 A 构建成功。"));
@@ -68,12 +68,12 @@ void MainWindow::buildPolynomialA() {
         displayPolynomialDetails(tr("多项式 A"), polynomialA);
     } else {
         hasA = false;
-        appendMessage(tr("多项式 A 输入无效。"));
+        appendMessage(tr("多项式 A 输入无效，请确认使用形如 (2-3x^4+4x^34) 的表达式并按降幂排列。"));
     }
 }
 
 void MainWindow::buildPolynomialB() {
-    QString text = ui->inputB->text();
+    QString text = ui->inputB->text().trimmed();
     if (polynomialB.parseFromString(text)) {
         hasB = true;
         appendMessage(tr("多项式 B 构建成功。"));
@@ -83,7 +83,7 @@ void MainWindow::buildPolynomialB() {
         displayPolynomialDetails(tr("多项式 B"), polynomialB);
     } else {
         hasB = false;
-        appendMessage(tr("多项式 B 输入无效。"));
+        appendMessage(tr("多项式 B 输入无效，请确认使用形如 (2-3x^4+4x^34) 的表达式并按降幂排列。"));
     }
 }
 
@@ -132,6 +132,7 @@ void MainWindow::evaluatePolynomialA() {
     }
     long double result = polynomialA.evaluate(value);
     appendMessage(tr("A(%1) = %2").arg(formatNumber(value), formatNumber(result)));
+    appendMessage(QString());
 }
 
 void MainWindow::evaluatePolynomialB() {
@@ -145,4 +146,5 @@ void MainWindow::evaluatePolynomialB() {
     }
     long double result = polynomialB.evaluate(value);
     appendMessage(tr("B(%1) = %2").arg(formatNumber(value), formatNumber(result)));
+    appendMessage(QString());
 }

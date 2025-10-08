@@ -28,7 +28,7 @@
     <item>
      <widget class="QLabel" name="instructionsLabel">
       <property name="text">
-       <string>输入格式: 使用降幂排列的表达式, 例如: 3+2x+3x^4-340x^34&#xa;输出: 结果会以表达式和 n c e... 的稀疏序列形式显示在下方文本框中。</string>
+       <string>输入格式: 使用括号包裹的降幂表达式, 例如: (3+2x+3x^4-340x^34)&#xa;输出: 结果会以表达式和 n c e... 的稀疏序列形式显示在下方文本框中。</string>
       </property>
       <property name="wordWrap">
        <bool>true</bool>
@@ -47,7 +47,7 @@
       <item>
        <widget class="QLineEdit" name="inputA">
         <property name="placeholderText">
-         <string>例如: 3+2x+3x^4-340x^34</string>
+         <string>例如: (3+2x+3x^4-340x^34)</string>
         </property>
        </widget>
       </item>
@@ -72,7 +72,7 @@
       <item>
        <widget class="QLineEdit" name="inputB">
         <property name="placeholderText">
-         <string>例如: 1-4x+6x^2</string>
+         <string>例如: (1-4x+6x^2)</string>
         </property>
        </widget>
       </item>
