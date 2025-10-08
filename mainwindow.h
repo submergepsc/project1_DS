@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QString>
 
 #include "polynomial.h"
 
@@ -35,6 +36,8 @@ private:
 
     void appendMessage(const QString& message);
     bool readValue(long double& value);
+    void displayPolynomialDetails(const QString& name, const Polynomial& polynomial);
+    QString formatNumber(long double number) const;
 };
 
 #endif // MAINWINDOW_H

@@ -1,11 +1,9 @@
 #ifndef POLYNOMIAL_H
 #define POLYNOMIAL_H
 
-#include <cmath>
 #include <string>
 
 #include <QString>
-#include <QStringList>
 
 using namespace std;
 
@@ -22,6 +20,7 @@ public:
 
     bool isEmpty() const;
     bool parseFromString(const QString& text);
+    QString toExpressionString() const;
     QString toSequenceString() const;
     Polynomial add(const Polynomial& other) const;
     Polynomial subtract(const Polynomial& other) const;
@@ -40,6 +39,7 @@ private:
     void copyFrom(const Polynomial& other);
     int countTerms() const;
     void insertTerm(long long coefficient, long long exponent);
+    static long double power(long double base, long long exponent);
 };
 
 #endif // POLYNOMIAL_H

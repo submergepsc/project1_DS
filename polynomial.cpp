@@ -47,51 +47,207 @@ bool Polynomial::isEmpty() const {
 bool Polynomial::parseFromString(const QString& text) {
     clear();
 
-    QString simplified = text.simplified();
-    if (simplified.isEmpty()) {
+    QString sanitized;
+    sanitized.reserve(text.size());
+    for (QChar ch : text) {
+        if (!ch.isSpace()) {
+            sanitized.append(ch);
+        }
+    }
+
+    if (sanitized.isEmpty()) {
         return true;
     }
 
-    QStringList tokens = simplified.split(' ');
-    if (tokens.isEmpty()) {
-        return false;
+    // Remove wrapping parentheses that enclose the entire expression.
+    bool trimmed = true;
+    while (trimmed && sanitized.size() >= 2 && sanitized.front() == '(' && sanitized.back() == ')') {
+        trimmed = false;
+        int depth = 0;
+        bool encloses = true;
+        for (int i = 0; i < sanitized.size() - 1; ++i) {
+            QChar ch = sanitized[i];
+            if (ch == '(') {
+                ++depth;
+            } else if (ch == ')') {
+                --depth;
+                if (depth == 0 && i < sanitized.size() - 2) {
+                    encloses = false;
+                    break;
+                }
+                if (depth < 0) {
+                    encloses = false;
+                    break;
+                }
+            }
+        }
+
+        if (encloses && depth == 1) {
+            sanitized = sanitized.mid(1, sanitized.size() - 2);
+            trimmed = true;
+        }
     }
 
-    bool okCount = false;
-    int expectedTerms = tokens[0].toInt(&okCount);
-    if (!okCount || expectedTerms < 0) {
-        return false;
+    if (sanitized.isEmpty()) {
+        return true;
     }
 
-    if (tokens.size() != 1 + expectedTerms * 2) {
-        return false;
-    }
+    const int length = sanitized.size();
+    int index = 0;
+    bool parsedAny = false;
 
-    for (int i = 0; i < expectedTerms; ++i) {
-        bool okCoef = false;
-        bool okExp = false;
-        long long coef = tokens[1 + i * 2].toLongLong(&okCoef);
-        long long exp = tokens[2 + i * 2].toLongLong(&okExp);
-        if (!okCoef || !okExp) {
+    while (index < length) {
+        int sign = 1;
+        if (sanitized[index] == '+') {
+            ++index;
+        } else if (sanitized[index] == '-') {
+            sign = -1;
+            ++index;
+        } else if (parsedAny) {
             clear();
             return false;
         }
-        if (coef != 0) {
-            insertTerm(coef, exp);
+
+        if (index >= length) {
+            clear();
+            return false;
+        }
+
+        QString coefPart;
+        while (index < length && sanitized[index].isDigit()) {
+            coefPart.append(sanitized[index]);
+            ++index;
+        }
+
+        bool hasVariable = false;
+        if (index < length && (sanitized[index] == 'x' || sanitized[index] == 'X')) {
+            hasVariable = true;
+            ++index;
+        }
+
+        long long exponent = 0;
+        if (hasVariable) {
+            exponent = 1;
+            if (index < length && sanitized[index] == '^') {
+                ++index;
+                QString exponentPart;
+                while (index < length && sanitized[index].isDigit()) {
+                    exponentPart.append(sanitized[index]);
+                    ++index;
+                }
+                if (exponentPart.isEmpty()) {
+                    clear();
+                    return false;
+                }
+                bool okExp = false;
+                long long parsedExp = exponentPart.toLongLong(&okExp);
+                if (!okExp || parsedExp < 0) {
+                    clear();
+                    return false;
+                }
+                exponent = parsedExp;
+            }
+        } else if (coefPart.isEmpty()) {
+            clear();
+            return false;
+        }
+
+        long long coefficient = 0;
+        if (coefPart.isEmpty()) {
+            coefficient = sign;
+        } else {
+            bool okCoef = false;
+            long long parsedCoef = coefPart.toLongLong(&okCoef);
+            if (!okCoef) {
+                clear();
+                return false;
+            }
+            coefficient = parsedCoef * sign;
+        }
+
+        if (!hasVariable) {
+            exponent = 0;
+        }
+
+        if (coefficient != 0) {
+            insertTerm(coefficient, exponent);
+        }
+
+        parsedAny = true;
+
+        if (index < length && sanitized[index] != '+' && sanitized[index] != '-') {
+            clear();
+            return false;
         }
     }
 
     return true;
 }
 
-QString Polynomial::toSequenceString() const {
+QString Polynomial::toExpressionString() const {
     QString result;
     QTextStream stream(&result);
-    int count = countTerms();
-    stream << count;
-    for (Term* current = head; current != nullptr; current = current->next) {
-        stream << ' ' << current->coefficient << ' ' << current->exponent;
+
+    stream << '(';
+
+    if (head == nullptr) {
+        stream << '0';
+    } else {
+        Term* current = head;
+        bool first = true;
+
+        while (current != nullptr) {
+            const long long coefficient = current->coefficient;
+            const long long exponent = current->exponent;
+
+            if (first) {
+                if (coefficient < 0) {
+                    stream << '-';
+                }
+            } else {
+                stream << (coefficient < 0 ? '-' : '+');
+            }
+
+            const long long absCoef = coefficient < 0 ? -coefficient : coefficient;
+            const bool showCoefficient = !(absCoef == 1 && exponent != 0);
+
+            if (exponent == 0) {
+                stream << absCoef;
+            } else {
+                if (showCoefficient) {
+                    stream << absCoef;
+                }
+                stream << 'x';
+                if (exponent != 1) {
+                    stream << '^' << exponent;
+                }
+            }
+
+            first = false;
+            current = current->next;
+        }
     }
+
+    stream << ')';
+    return result;
+}
+
+QString Polynomial::toSequenceString() const {
+    int termCount = countTerms();
+    if (termCount == 0) {
+        return QStringLiteral("0");
+    }
+
+    QString result;
+    QTextStream stream(&result);
+    stream << termCount;
+
+    Term* current = head;
+    while (current != nullptr) {
+        stream << ' ' << current->coefficient << ' ' << current->exponent;
+        current = current->next;
+    }
+
     return result;
 }
 
@@ -149,10 +305,29 @@ long double Polynomial::evaluate(long double x) const {
     long double total = 0.0L;
     for (Term* current = head; current != nullptr; current = current->next) {
         long double coef = static_cast<long double>(current->coefficient);
-        long double exp = static_cast<long double>(current->exponent);
-        total += coef * pow(x, exp);
+        total += coef * power(x, current->exponent);
     }
     return total;
+}
+
+long double Polynomial::power(long double base, long long exponent) {
+    if (exponent == 0) {
+        return 1.0L;
+    }
+
+    long double result = 1.0L;
+    long double factor = base;
+    long long remaining = exponent;
+
+    while (remaining > 0) {
+        if ((remaining & 1LL) != 0) {
+            result *= factor;
+        }
+        factor *= factor;
+        remaining >>= 1;
+    }
+
+    return result;
 }
 
 void Polynomial::clear() {
