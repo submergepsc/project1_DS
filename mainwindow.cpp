@@ -50,6 +50,7 @@ bool MainWindow::readValue(long double& value) {
 void MainWindow::displayPolynomialDetails(const QString& name, const Polynomial& polynomial) {
     appendMessage(tr("%1: %2").arg(name, polynomial.toExpressionString()));
     appendMessage(tr("%1 的稀疏序列: %2").arg(name, polynomial.toSequenceString()));
+    appendMessage(QString());
 }
 
 QString MainWindow::formatNumber(long double number) const {

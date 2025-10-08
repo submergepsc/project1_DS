@@ -200,13 +200,13 @@ QString Polynomial::toSequenceString() const {
         return QStringLiteral("0");
     }
 
-    QString result = QString::number(termCount);
+    QString result;
+    QTextStream stream(&result);
+    stream << termCount;
+
     Term* current = head;
     while (current != nullptr) {
-        result.append(',');
-        result.append(QString::number(current->coefficient));
-        result.append(',');
-        result.append(QString::number(current->exponent));
+        stream << ' ' << current->coefficient << ' ' << current->exponent;
         current = current->next;
     }
 
