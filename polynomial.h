@@ -40,6 +40,7 @@ private:
     void copyFrom(const Polynomial& other);
     int countTerms() const;
     void insertTerm(long long coefficient, long long exponent);
+    static long double power(long double base, long long exponent);
 };
 
 #endif // POLYNOMIAL_H

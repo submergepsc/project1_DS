@@ -267,10 +267,29 @@ long double Polynomial::evaluate(long double x) const {
     long double total = 0.0L;
     for (Term* current = head; current != nullptr; current = current->next) {
         long double coef = static_cast<long double>(current->coefficient);
-        long double exp = static_cast<long double>(current->exponent);
-        total += coef * pow(x, exp);
+        total += coef * power(x, current->exponent);
     }
     return total;
+}
+
+long double Polynomial::power(long double base, long long exponent) {
+    if (exponent == 0) {
+        return 1.0L;
+    }
+
+    long double result = 1.0L;
+    long double factor = base;
+    long long remaining = exponent;
+
+    while (remaining > 0) {
+        if ((remaining & 1LL) != 0) {
+            result *= factor;
+        }
+        factor *= factor;
+        remaining >>= 1;
+    }
+
+    return result;
 }
 
 void Polynomial::clear() {
