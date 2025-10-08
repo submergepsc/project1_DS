@@ -194,6 +194,25 @@ QString Polynomial::toExpressionString() const {
     return result;
 }
 
+QString Polynomial::toSequenceString() const {
+    int termCount = countTerms();
+    if (termCount == 0) {
+        return QStringLiteral("0");
+    }
+
+    QString result = QString::number(termCount);
+    Term* current = head;
+    while (current != nullptr) {
+        result.append(',');
+        result.append(QString::number(current->coefficient));
+        result.append(',');
+        result.append(QString::number(current->exponent));
+        current = current->next;
+    }
+
+    return result;
+}
+
 Polynomial Polynomial::add(const Polynomial& other) const {
     Polynomial output;
     Term* lhs = head;

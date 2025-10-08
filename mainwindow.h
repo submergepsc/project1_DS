@@ -35,6 +35,8 @@ private:
 
     void appendMessage(const QString& message);
     bool readValue(long double& value);
+    void displayPolynomialDetails(const QString& name, const Polynomial& polynomial);
+    QString formatNumber(long double number) const;
 };
 
 #endif // MAINWINDOW_H

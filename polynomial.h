@@ -22,6 +22,7 @@ public:
     bool isEmpty() const;
     bool parseFromString(const QString& text);
     QString toExpressionString() const;
+    QString toSequenceString() const;
     Polynomial add(const Polynomial& other) const;
     Polynomial subtract(const Polynomial& other) const;
     long double evaluate(long double x) const;
