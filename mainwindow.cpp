@@ -62,6 +62,9 @@ void MainWindow::buildPolynomialA() {
     if (polynomialA.parseFromString(text)) {
         hasA = true;
         appendMessage(tr("多项式 A 构建成功。"));
+        if (polynomialA.isEmpty()) {
+            appendMessage(tr("多项式 A 是零多项式。"));
+        }
         displayPolynomialDetails(tr("多项式 A"), polynomialA);
     } else {
         hasA = false;
@@ -74,6 +77,9 @@ void MainWindow::buildPolynomialB() {
     if (polynomialB.parseFromString(text)) {
         hasB = true;
         appendMessage(tr("多项式 B 构建成功。"));
+        if (polynomialB.isEmpty()) {
+            appendMessage(tr("多项式 B 是零多项式。"));
+        }
         displayPolynomialDetails(tr("多项式 B"), polynomialB);
     } else {
         hasB = false;
