@@ -1,7 +1,6 @@
 #ifndef POLYNOMIAL_H
 #define POLYNOMIAL_H
 
-#include <cmath>
 #include <string>
 
 #include <QString>

@@ -59,7 +59,40 @@ bool Polynomial::parseFromString(const QString& text) {
         return true;
     }
 
-    int length = sanitized.size();
+    // Remove wrapping parentheses that enclose the entire expression.
+    bool trimmed = true;
+    while (trimmed && sanitized.size() >= 2 && sanitized.front() == '(' && sanitized.back() == ')') {
+        trimmed = false;
+        int depth = 0;
+        bool encloses = true;
+        for (int i = 0; i < sanitized.size() - 1; ++i) {
+            QChar ch = sanitized[i];
+            if (ch == '(') {
+                ++depth;
+            } else if (ch == ')') {
+                --depth;
+                if (depth == 0 && i < sanitized.size() - 2) {
+                    encloses = false;
+                    break;
+                }
+                if (depth < 0) {
+                    encloses = false;
+                    break;
+                }
+            }
+        }
+
+        if (encloses && depth == 1) {
+            sanitized = sanitized.mid(1, sanitized.size() - 2);
+            trimmed = true;
+        }
+    }
+
+    if (sanitized.isEmpty()) {
+        return true;
+    }
+
+    const int length = sanitized.size();
     int index = 0;
     bool parsedAny = false;
 
@@ -152,45 +185,50 @@ bool Polynomial::parseFromString(const QString& text) {
 }
 
 QString Polynomial::toExpressionString() const {
-    if (head == nullptr) {
-        return QStringLiteral("0");
-    }
-
     QString result;
     QTextStream stream(&result);
-    Term* current = head;
-    bool first = true;
 
-    while (current != nullptr) {
-        long long coefficient = current->coefficient;
-        long long exponent = current->exponent;
+    stream << '(';
 
-        if (first) {
-            if (coefficient < 0) {
-                stream << '-';
+    if (head == nullptr) {
+        stream << '0';
+    } else {
+        Term* current = head;
+        bool first = true;
+
+        while (current != nullptr) {
+            const long long coefficient = current->coefficient;
+            const long long exponent = current->exponent;
+
+            if (first) {
+                if (coefficient < 0) {
+                    stream << '-';
+                }
+            } else {
+                stream << (coefficient < 0 ? '-' : '+');
             }
-        } else {
-            stream << (coefficient < 0 ? '-' : '+');
-        }
 
-        long long absCoef = coefficient < 0 ? -coefficient : coefficient;
-        bool showCoefficient = !(absCoef == 1 && exponent != 0);
+            const long long absCoef = coefficient < 0 ? -coefficient : coefficient;
+            const bool showCoefficient = !(absCoef == 1 && exponent != 0);
 
-        if (showCoefficient) {
-            stream << absCoef;
-        }
-
-        if (exponent != 0) {
-            stream << 'x';
-            if (exponent != 1) {
-                stream << '^' << exponent;
+            if (exponent == 0) {
+                stream << absCoef;
+            } else {
+                if (showCoefficient) {
+                    stream << absCoef;
+                }
+                stream << 'x';
+                if (exponent != 1) {
+                    stream << '^' << exponent;
+                }
             }
-        }
 
-        first = false;
-        current = current->next;
+            first = false;
+            current = current->next;
+        }
     }
 
+    stream << ')';
     return result;
 }
 
