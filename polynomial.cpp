@@ -81,6 +81,14 @@ bool Polynomial::parseSequence(const QString& text, QString* errorMessage)
         }
     }
 
+    for (auto it = terms.begin(); it != terms.end();) {
+        if (it->second == 0) {
+            it = terms.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
     return true;
 }
 

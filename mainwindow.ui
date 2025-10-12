@@ -42,9 +42,9 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="layoutA">
+     <layout class="QHBoxLayout" name="polynomialLayout">
       <item>
-       <widget class="QLabel" name="labelA">
+       <widget class="QLabel" name="polynomialLabel">
         <property name="text">
          <string>A：</string>
         </property>
