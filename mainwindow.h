@@ -25,6 +25,8 @@ private slots:
     void subtractPolynomials();
     void evaluatePolynomialA();
     void evaluatePolynomialB();
+    void evaluatePolynomialSum();
+    void evaluatePolynomialDifference();
 
 private:
     Ui::MainWindow* ui;
