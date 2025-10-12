@@ -21,6 +21,8 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->subtractButton, &QPushButton::clicked, this, &MainWindow::subtractPolynomials);
     connect(ui->evalAButton, &QPushButton::clicked, this, &MainWindow::evaluatePolynomialA);
     connect(ui->evalBButton, &QPushButton::clicked, this, &MainWindow::evaluatePolynomialB);
+    connect(ui->evalSumButton, &QPushButton::clicked, this, &MainWindow::evaluatePolynomialSum);
+    connect(ui->evalDiffButton, &QPushButton::clicked, this, &MainWindow::evaluatePolynomialDifference);
 }
 
 MainWindow::~MainWindow() {
@@ -145,4 +147,32 @@ void MainWindow::evaluatePolynomialB() {
     }
     long double result = polynomialB.evaluate(value);
     appendMessage(tr("B(%1) = %2").arg(formatNumber(value), formatNumber(result)));
+}
+
+void MainWindow::evaluatePolynomialSum() {
+    if (!hasA || !hasB) {
+        appendMessage(tr("请先建立多项式 A 和 B。"));
+        return;
+    }
+    long double value = 0.0L;
+    if (!readValue(value)) {
+        return;
+    }
+    Polynomial resultPolynomial = polynomialA.add(polynomialB);
+    long double result = resultPolynomial.evaluate(value);
+    appendMessage(tr("(A + B)(%1) = %2").arg(formatNumber(value), formatNumber(result)));
+}
+
+void MainWindow::evaluatePolynomialDifference() {
+    if (!hasA || !hasB) {
+        appendMessage(tr("请先建立多项式 A 和 B。"));
+        return;
+    }
+    long double value = 0.0L;
+    if (!readValue(value)) {
+        return;
+    }
+    Polynomial resultPolynomial = polynomialA.subtract(polynomialB);
+    long double result = resultPolynomial.evaluate(value);
+    appendMessage(tr("(A - B)(%1) = %2").arg(formatNumber(value), formatNumber(result)));
 }

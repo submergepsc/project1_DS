@@ -1,4 +1,5 @@
 #include <QTextStream>
+#include <limits>
 #include "polynomial.h"
 
 Polynomial::Polynomial() : head(nullptr) {}
@@ -116,17 +117,35 @@ bool Polynomial::parseFromString(const QString& text) {
             if (index < length && sanitized[index] == '^') {
                 ++index;
                 QString exponentPart;
+                bool hadParens = false;
+                if (index < length && (sanitized[index] == '(' || sanitized[index] == QChar(0xFF08))) {
+                    hadParens = true;
+                    ++index;
+                }
+                bool hadSign = false;
+                if (index < length && (sanitized[index] == '+' || sanitized[index] == '-')) {
+                    hadSign = true;
+                    exponentPart.append(sanitized[index]);
+                    ++index;
+                }
                 while (index < length && sanitized[index].isDigit()) {
                     exponentPart.append(sanitized[index]);
                     ++index;
                 }
-                if (exponentPart.isEmpty()) {
+                if (hadParens) {
+                    if (index >= length || (sanitized[index] != ')' && sanitized[index] != QChar(0xFF09))) {
+                        clear();
+                        return false;
+                    }
+                    ++index;
+                }
+                if (exponentPart.isEmpty() || (hadSign && exponentPart.size() == 1)) {
                     clear();
                     return false;
                 }
                 bool okExp = false;
                 long long parsedExp = exponentPart.toLongLong(&okExp);
-                if (!okExp || parsedExp < 0) {
+                if (!okExp) {
                     clear();
                     return false;
                 }
@@ -295,19 +314,34 @@ long double Polynomial::power(long double base, long long exponent) {
         return 1.0L;
     }
 
+    bool negativeExponent = exponent < 0;
+    unsigned long long remaining;
+    if (negativeExponent) {
+        remaining = static_cast<unsigned long long>(-(exponent + 1)) + 1ULL;
+    } else {
+        remaining = static_cast<unsigned long long>(exponent);
+    }
+
     long double result = 1.0L;
     long double factor = base;
-    long long remaining = exponent;
 
     while (remaining > 0) {
-        if ((remaining & 1LL) != 0) {
+        if ((remaining & 1ULL) != 0) {
             result *= factor;
         }
         factor *= factor;
         remaining >>= 1;
     }
 
-    return result;
+    if (!negativeExponent) {
+        return result;
+    }
+
+    if (result == 0.0L) {
+        return std::numeric_limits<long double>::infinity();
+    }
+
+    return 1.0L / result;
 }
 
 void Polynomial::clear() {
