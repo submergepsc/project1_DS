@@ -147,6 +147,20 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="evalSumButton">
+        <property name="text">
+         <string>计算 (A + B)(x)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="evalDiffButton">
+        <property name="text">
+         <string>计算 (A - B)(x)</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
