@@ -1,14 +1,14 @@
 #include <QApplication>
-#include <QCoreApplication>
-#include <QString>
 
 #include "mainwindow.h"
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
-    QCoreApplication::setApplicationName(QStringLiteral("一元稀疏多项式简单计算器"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("1.0"));
+    QApplication::setApplicationName(QStringLiteral("简易多项式计算器"));
+    QApplication::setApplicationVersion(QStringLiteral("2.0"));
+
     MainWindow window;
     window.show();
+
     return app.exec();
 }
