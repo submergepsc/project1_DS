@@ -1,175 +1,83 @@
 #include "polynomial.h"
 
 #include <cmath>
-
 #include <cstdlib>
 
 #include <QStringList>
 
+namespace {
+QStringList tokenizeSequence(const QString& text)
+{
+    QString simplified = text;
+    simplified.replace(',', ' ');
+    simplified.replace('\n', ' ');
+    simplified.replace('\t', ' ');
+    return simplified.split(' ', Qt::SkipEmptyParts);
+}
+}
+
 Polynomial::Polynomial() = default;
 
-bool Polynomial::isZero() const {
+bool Polynomial::isZero() const
+{
     return terms.empty();
 }
 
-bool Polynomial::parseFromString(const QString& text, QString* errorMessage) {
+bool Polynomial::parseSequence(const QString& text, QString* errorMessage)
+{
     if (errorMessage) {
         errorMessage->clear();
     }
 
     reset();
 
-    QString sanitized;
-    sanitized.reserve(text.size());
-    for (QChar ch : text) {
-        if (!ch.isSpace()) {
-            sanitized.append(ch);
-        }
-    }
-
-    if (sanitized.isEmpty()) {
+    const QString trimmed = text.trimmed();
+    if (trimmed.isEmpty()) {
         return true;
     }
 
-    bool trimmed = true;
-    while (trimmed && sanitized.size() >= 2 && sanitized.front() == '(' && sanitized.back() == ')') {
-        trimmed = false;
-        int depth = 0;
-        bool encloses = true;
-        for (int i = 0; i < sanitized.size(); ++i) {
-            const QChar ch = sanitized[i];
-            if (ch == '(') {
-                ++depth;
-            } else if (ch == ')') {
-                --depth;
-                if (depth == 0 && i < sanitized.size() - 1) {
-                    encloses = false;
-                    break;
-                }
-                if (depth < 0) {
-                    encloses = false;
-                    break;
-                }
-            }
+    const QStringList tokens = tokenizeSequence(trimmed);
+    if (tokens.size() % 2 != 0) {
+        if (errorMessage) {
+            *errorMessage = QStringLiteral("请输入成对的系数和指数。");
         }
-
-        if (encloses && depth == 0) {
-            sanitized = sanitized.mid(1, sanitized.size() - 2);
-            trimmed = true;
-        }
+        reset();
+        return false;
     }
 
-    if (sanitized.isEmpty()) {
-        return true;
-    }
-
-    const int length = sanitized.size();
-    int index = 0;
-
-    while (index < length) {
-        int sign = 1;
-        if (sanitized[index] == '+') {
-            ++index;
-        } else if (sanitized[index] == '-') {
-            sign = -1;
-            ++index;
-        } else if (index != 0) {
+    for (int i = 0; i < tokens.size(); i += 2) {
+        bool coefficientOk = false;
+        const long long coefficient = tokens.at(i).toLongLong(&coefficientOk);
+        if (!coefficientOk) {
             if (errorMessage) {
-                *errorMessage = QStringLiteral("缺少运算符。");
+                *errorMessage = QStringLiteral("无法解析第 %1 个系数。").arg(i / 2 + 1);
             }
             reset();
             return false;
         }
 
-        if (index >= length) {
+        bool exponentOk = false;
+        const long long exponent = tokens.at(i + 1).toLongLong(&exponentOk);
+        if (!exponentOk) {
             if (errorMessage) {
-                *errorMessage = QStringLiteral("表达式以符号结尾。");
+                *errorMessage = QStringLiteral("无法解析第 %1 个指数。").arg(i / 2 + 1);
             }
             reset();
             return false;
         }
 
-        QString coefficientPart;
-        while (index < length && sanitized[index].isDigit()) {
-            coefficientPart.append(sanitized[index]);
-            ++index;
+        if (coefficient == 0) {
+            continue;
         }
 
-        bool hasVariable = false;
-        long long exponent = 0;
-        if (index < length && (sanitized[index] == 'x' || sanitized[index] == 'X')) {
-            hasVariable = true;
-            ++index;
-            exponent = 1;
-            if (index < length && sanitized[index] == '^') {
-                ++index;
-                if (index >= length) {
-                    if (errorMessage) {
-                        *errorMessage = QStringLiteral("指数缺失。");
-                    }
-                    reset();
-                    return false;
-                }
-
-                QString exponentPart;
-                while (index < length && sanitized[index].isDigit()) {
-                    exponentPart.append(sanitized[index]);
-                    ++index;
-                }
-
-                if (exponentPart.isEmpty()) {
-                    if (errorMessage) {
-                        *errorMessage = QStringLiteral("指数缺失。");
-                    }
-                    reset();
-                    return false;
-                }
-
-                bool exponentOk = false;
-                exponent = exponentPart.toLongLong(&exponentOk);
-                if (!exponentOk) {
-                    if (errorMessage) {
-                        *errorMessage = QStringLiteral("无法解析指数。");
-                    }
-                    reset();
-                    return false;
-                }
-            }
-        }
-
-        long long coefficient = 0;
-        if (coefficientPart.isEmpty()) {
-            if (hasVariable) {
-                coefficient = 1;
-            } else {
-                if (errorMessage) {
-                    *errorMessage = QStringLiteral("常数项缺少系数。");
-                }
-                reset();
-                return false;
-            }
+        const auto iter = terms.find(exponent);
+        if (iter == terms.end()) {
+            terms.emplace(exponent, coefficient);
         } else {
-            bool coefficientOk = false;
-            coefficient = coefficientPart.toLongLong(&coefficientOk);
-            if (!coefficientOk) {
-                if (errorMessage) {
-                    *errorMessage = QStringLiteral("无法解析系数。");
-                }
-                reset();
-                return false;
+            iter->second += coefficient;
+            if (iter->second == 0) {
+                terms.erase(iter);
             }
-        }
-
-        coefficient *= sign;
-        terms[exponent] += coefficient;
-
-        if (index < length && sanitized[index] != '+' && sanitized[index] != '-') {
-            if (errorMessage) {
-                *errorMessage = QStringLiteral("在第 %1 个字符附近检测到无法识别的内容。")
-                                      .arg(index + 1);
-            }
-            reset();
-            return false;
         }
     }
 
@@ -184,100 +92,117 @@ bool Polynomial::parseFromString(const QString& text, QString* errorMessage) {
     return true;
 }
 
-QString Polynomial::toExpressionString() const {
+QString Polynomial::toExpressionString() const
+{
     if (terms.empty()) {
         return QStringLiteral("0");
     }
 
     QStringList parts;
-    for (auto it = terms.rbegin(); it != terms.rend(); ++it) {
-        const long long exponent = it->first;
-        const long long coefficient = it->second;
-        if (coefficient == 0) {
-            continue;
+    parts.reserve(static_cast<int>(terms.size()));
+
+    for (auto iter = terms.rbegin(); iter != terms.rend(); ++iter) {
+        const long long exponent = iter->first;
+        const long long coefficient = iter->second;
+
+        QString part;
+        if (coefficient < 0) {
+            part.append('-');
+        } else if (!parts.isEmpty()) {
+            part.append('+');
         }
 
-        QString term;
-        const bool negative = coefficient < 0;
-        const long long absoluteCoefficient = std::llabs(coefficient);
-
-        if (parts.isEmpty()) {
-            if (negative) {
-                term.append('-');
-            }
+        const long long absCoefficient = std::llabs(coefficient);
+        if (exponent == 0) {
+            part.append(QString::number(absCoefficient));
         } else {
-            term.append(negative ? QStringLiteral(" - ") : QStringLiteral(" + "));
-        }
-
-        const bool showCoefficient = (exponent == 0) || (absoluteCoefficient != 1);
-        if (showCoefficient) {
-            term.append(QString::number(absoluteCoefficient));
-        }
-
-        if (exponent > 0) {
-            if (showCoefficient) {
-                term.append('x');
-            } else {
-                term.append('x');
+            if (absCoefficient != 1) {
+                part.append(QString::number(absCoefficient));
             }
-
-            if (exponent > 1) {
-                term.append('^');
-                term.append(QString::number(exponent));
+            part.append('x');
+            if (exponent != 1) {
+                part.append('^');
+                part.append(QString::number(exponent));
             }
         }
 
-        parts.append(term);
-    }
-
-    if (parts.isEmpty()) {
-        return QStringLiteral("0");
+        parts.append(part);
     }
 
     return parts.join(QString());
 }
 
-QString Polynomial::toSequenceString() const {
+QString Polynomial::toSequenceString(SequenceOrder order) const
+{
     if (terms.empty()) {
-        return QStringLiteral("[]");
+        return QStringLiteral("0");
     }
 
-    QStringList items;
-    for (auto it = terms.rbegin(); it != terms.rend(); ++it) {
-        items.append(QStringLiteral("(%1, %2)").arg(QString::number(it->second), QString::number(it->first)));
+    QStringList parts;
+    parts.reserve(static_cast<int>(terms.size()) * 2);
+
+    if (order == SequenceOrder::Ascending) {
+        for (const auto& term : terms) {
+            parts.append(QString::number(term.second));
+            parts.append(QString::number(term.first));
+        }
+    } else {
+        for (auto iter = terms.rbegin(); iter != terms.rend(); ++iter) {
+            parts.append(QString::number(iter->second));
+            parts.append(QString::number(iter->first));
+        }
     }
 
-    return QStringLiteral("[ %1 ]").arg(items.join(QStringLiteral(", ")));
+    return parts.join(' ');
 }
 
-long double Polynomial::evaluate(long double x) const {
-    long double total = 0.0L;
+long double Polynomial::evaluate(long double x) const
+{
+    long double result = 0.0L;
     for (const auto& term : terms) {
-        const long double coefficient = static_cast<long double>(term.second);
-        total += coefficient * fastPower(x, term.first);
+        const long long exponent = term.first;
+        const long long coefficient = term.second;
+        result += static_cast<long double>(coefficient) * fastPower(x, exponent);
     }
-    return total;
+    return result;
 }
 
-void Polynomial::reset() {
+Polynomial Polynomial::add(const Polynomial& left, const Polynomial& right)
+{
+    Polynomial result;
+    result.terms = left.terms;
+
+    for (const auto& term : right.terms) {
+        result.terms[term.first] += term.second;
+        if (result.terms[term.first] == 0) {
+            result.terms.erase(term.first);
+        }
+    }
+
+    return result;
+}
+
+void Polynomial::reset()
+{
     terms.clear();
 }
 
-long double Polynomial::fastPower(long double base, long long exponent) {
+long double Polynomial::fastPower(long double base, long long exponent)
+{
     if (exponent == 0) {
         return 1.0L;
     }
 
     long double result = 1.0L;
-    long double factor = base;
-    long long remaining = exponent;
+    long double current = base;
+    long long power = exponent;
 
-    while (remaining > 0) {
-        if ((remaining & 1LL) != 0) {
-            result *= factor;
+    while (power > 0) {
+        if (power & 1LL) {
+            result *= current;
         }
-        factor *= factor;
-        remaining >>= 1;
+        current *= current;
+        power >>= 1;
     }
 
     return result;

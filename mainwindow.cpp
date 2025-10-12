@@ -9,57 +9,73 @@
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , hasPolynomial(false) {
+    , hasResult(false)
+{
     ui->setupUi(this);
 
-    setMinimumSize(420, 360);
+    setMinimumSize(520, 420);
 
-    connect(ui->parseButton, &QPushButton::clicked, this, &MainWindow::parsePolynomial);
-    connect(ui->evaluateButton, &QPushButton::clicked, this, &MainWindow::evaluatePolynomial);
-    connect(ui->polynomialInput, &QLineEdit::returnPressed, this, &MainWindow::parsePolynomial);
-    connect(ui->valueInput, &QLineEdit::returnPressed, this, &MainWindow::evaluatePolynomial);
+    connect(ui->computeButton, &QPushButton::clicked, this, &MainWindow::generateResult);
+    connect(ui->polyAInput, &QLineEdit::returnPressed, this, &MainWindow::generateResult);
+    connect(ui->polyBInput, &QLineEdit::returnPressed, this, &MainWindow::generateResult);
+    connect(ui->evaluateButton, &QPushButton::clicked, this, &MainWindow::evaluateResult);
+    connect(ui->valueInput, &QLineEdit::returnPressed, this, &MainWindow::evaluateResult);
 }
 
-MainWindow::~MainWindow() {
+MainWindow::~MainWindow()
+{
     delete ui;
 }
 
-void MainWindow::appendMessage(const QString& message) {
+void MainWindow::appendMessage(const QString& message)
+{
     ui->outputView->appendPlainText(message);
 }
 
-void MainWindow::showPolynomialDetails() {
-    appendMessage(tr("表达式: %1").arg(polynomial.toExpressionString()));
-    appendMessage(tr("稀疏序列: %1").arg(polynomial.toSequenceString()));
-    appendMessage(QString());
-}
-
-QString MainWindow::formatNumber(long double value) const {
+QString MainWindow::formatNumber(long double value) const
+{
     return QString::number(static_cast<double>(value), 'g', 15);
 }
 
-void MainWindow::parsePolynomial() {
-    const QString text = ui->polynomialInput->text().trimmed();
-
+void MainWindow::generateResult()
+{
     QString errorMessage;
-    if (polynomial.parseFromString(text, &errorMessage)) {
-        hasPolynomial = true;
+    Polynomial candidateA;
+    Polynomial candidateB;
+
+    if (!candidateA.parseSequence(ui->polyAInput->text(), &errorMessage)) {
         ui->outputView->clear();
-        if (polynomial.isZero()) {
-            appendMessage(tr("输入解析为零多项式。"));
-        } else {
-            appendMessage(tr("多项式解析成功。"));
-        }
-        showPolynomialDetails();
-    } else {
-        hasPolynomial = false;
-        appendMessage(tr("解析失败: %1").arg(errorMessage));
+        appendMessage(tr("解析多项式 A 失败: %1").arg(errorMessage));
+        hasResult = false;
+        return;
     }
+
+    if (!candidateB.parseSequence(ui->polyBInput->text(), &errorMessage)) {
+        ui->outputView->clear();
+        appendMessage(tr("解析多项式 B 失败: %1").arg(errorMessage));
+        hasResult = false;
+        return;
+    }
+
+    polynomialA = candidateA;
+    polynomialB = candidateB;
+    polynomialC = Polynomial::add(polynomialA, polynomialB);
+
+    ui->outputView->clear();
+
+    appendMessage(tr("多项式 A (逆序输入): %1").arg(polynomialA.toSequenceString(Polynomial::SequenceOrder::Descending)));
+    appendMessage(tr("多项式 B (逆序输入): %1").arg(polynomialB.toSequenceString(Polynomial::SequenceOrder::Descending)));
+    appendMessage(tr("多项式 C(x) = %1").arg(polynomialC.toExpressionString()));
+    appendMessage(tr("C 的顺序稀疏序列: %1").arg(polynomialC.toSequenceString(Polynomial::SequenceOrder::Ascending)));
+    appendMessage(QString());
+
+    hasResult = true;
 }
 
-void MainWindow::evaluatePolynomial() {
-    if (!hasPolynomial) {
-        appendMessage(tr("请先解析多项式。"));
+void MainWindow::evaluateResult()
+{
+    if (!hasResult) {
+        appendMessage(tr("请先生成多项式 C。"));
         return;
     }
 
@@ -76,7 +92,7 @@ void MainWindow::evaluatePolynomial() {
         return;
     }
 
-    const long double result = polynomial.evaluate(xValue);
-    appendMessage(tr("P(%1) = %2").arg(formatNumber(xValue), formatNumber(result)));
+    const long double result = polynomialC.evaluate(xValue);
+    appendMessage(tr("C(%1) = %2").arg(formatNumber(xValue), formatNumber(result)));
     appendMessage(QString());
 }

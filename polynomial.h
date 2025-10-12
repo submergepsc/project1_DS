@@ -10,10 +10,16 @@ public:
     Polynomial();
 
     bool isZero() const;
-    bool parseFromString(const QString& text, QString* errorMessage);
+    enum class SequenceOrder {
+        Ascending,
+        Descending,
+    };
+
+    bool parseSequence(const QString& text, QString* errorMessage);
     QString toExpressionString() const;
-    QString toSequenceString() const;
+    QString toSequenceString(SequenceOrder order) const;
     long double evaluate(long double x) const;
+    static Polynomial add(const Polynomial& left, const Polynomial& right);
 
 private:
     using TermMap = std::map<long long, long long>;

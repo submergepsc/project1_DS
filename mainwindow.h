@@ -20,16 +20,17 @@ public:
     ~MainWindow() override;
 
 private slots:
-    void parsePolynomial();
-    void evaluatePolynomial();
+    void generateResult();
+    void evaluateResult();
 
 private:
     Ui::MainWindow* ui;
-    Polynomial polynomial;
-    bool hasPolynomial;
+    Polynomial polynomialA;
+    Polynomial polynomialB;
+    Polynomial polynomialC;
+    bool hasResult;
 
     void appendMessage(const QString& message);
-    void showPolynomialDetails();
     QString formatNumber(long double value) const;
 };
 
