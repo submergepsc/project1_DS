@@ -6,29 +6,35 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>640</width>
+    <height>480</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>一元稀疏多项式简单计算器</string>
+   <string>多项式运算</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,1">
     <item>
      <widget class="QLabel" name="titleLabel">
       <property name="text">
-       <string>一元稀疏多项式简单计算器</string>
+       <string>一元稀疏多项式运算</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-size: 20px; font-weight: 600;</string>
+      </property>
      </widget>
     </item>
     <item>
-     <widget class="QLabel" name="instructionsLabel">
+     <widget class="QLabel" name="descriptionLabel">
       <property name="text">
-       <string>输入格式: 使用括号包裹的降幂表达式, 例如: (3+2x+3x^4-340x^34)&#xa;输出: 结果会以表达式和 n c e... 的稀疏序列形式显示在下方文本框中。</string>
+       <string>请输入多项式 A、B 的逆序稀疏序列（系数 指数 ...），点击“生成 C” 可得到顺序输出并计算 C(x)。</string>
       </property>
       <property name="wordWrap">
        <bool>true</bool>
@@ -40,21 +46,14 @@
       <item>
        <widget class="QLabel" name="labelA">
         <property name="text">
-         <string>多项式 A:</string>
+         <string>A：</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="inputA">
+       <widget class="QLineEdit" name="polyAInput">
         <property name="placeholderText">
-         <string>例如: (3+2x+3x^4-340x^34)</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="buildAButton">
-        <property name="text">
-         <string>建立多项式 A</string>
+         <string>例如：3 4 -2 1 5 0</string>
         </property>
        </widget>
       </item>
@@ -65,100 +64,93 @@
       <item>
        <widget class="QLabel" name="labelB">
         <property name="text">
-         <string>多项式 B:</string>
+         <string>B：</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="inputB">
+       <widget class="QLineEdit" name="polyBInput">
         <property name="placeholderText">
-         <string>例如: (1-4x+6x^2)</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="buildBButton">
-        <property name="text">
-         <string>建立多项式 B</string>
+         <string>例如：1 2 4 1 -3 0</string>
         </property>
        </widget>
       </item>
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="layoutActions">
+     <layout class="QHBoxLayout" name="actionLayout">
       <item>
-       <widget class="QPushButton" name="showAButton">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="computeButton">
         <property name="text">
-         <string>输出 A</string>
+         <string>生成 C</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="showBButton">
-        <property name="text">
-         <string>输出 B</string>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="addButton">
-        <property name="text">
-         <string>A + B</string>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="subtractButton">
-        <property name="text">
-         <string>A - B</string>
-        </property>
-       </widget>
+       </spacer>
       </item>
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="layoutValue">
+     <layout class="QHBoxLayout" name="valueLayout">
       <item>
-       <widget class="QLabel" name="labelValue">
+       <widget class="QLabel" name="valueLabel">
         <property name="text">
-         <string>x 的值:</string>
+         <string>x 的值：</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QLineEdit" name="valueInput">
         <property name="placeholderText">
-         <string>请输入一个数字</string>
+         <string>例如：1.5</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="evalAButton">
+       <widget class="QPushButton" name="evaluateButton">
         <property name="text">
-         <string>计算 A(x)</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="evalBButton">
-        <property name="text">
-         <string>计算 B(x)</string>
+         <string>计算 C(x)</string>
         </property>
        </widget>
       </item>
      </layout>
     </item>
     <item>
-     <widget class="QTextEdit" name="outputArea">
+     <widget class="QPlainTextEdit" name="outputView">
       <property name="readOnly">
        <bool>true</bool>
+      </property>
+      <property name="placeholderText">
+       <string>结果将在此处显示。</string>
       </property>
      </widget>
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar"/>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>

@@ -6,9 +6,11 @@
 
 #include "polynomial.h"
 
+QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
 }
+QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -18,26 +20,18 @@ public:
     ~MainWindow() override;
 
 private slots:
-    void buildPolynomialA();
-    void buildPolynomialB();
-    void showPolynomialA();
-    void showPolynomialB();
-    void addPolynomials();
-    void subtractPolynomials();
-    void evaluatePolynomialA();
-    void evaluatePolynomialB();
+    void generateResult();
+    void evaluateResult();
 
 private:
     Ui::MainWindow* ui;
     Polynomial polynomialA;
     Polynomial polynomialB;
-    bool hasA;
-    bool hasB;
+    Polynomial polynomialC;
+    bool hasResult;
 
     void appendMessage(const QString& message);
-    bool readValue(long double& value);
-    void displayPolynomialDetails(const QString& name, const Polynomial& polynomial);
-    QString formatNumber(long double number) const;
+    QString formatNumber(long double value) const;
 };
 
 #endif // MAINWINDOW_H
