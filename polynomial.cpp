@@ -116,8 +116,20 @@ bool Polynomial::parseFromString(const QString& text) {
             if (index < length && sanitized[index] == '^') {
                 ++index;
                 QString exponentPart;
+                bool hadParens = false;
+                if (index < length && (sanitized[index] == '(' || sanitized[index] == QChar(0xFF08))) {
+                    hadParens = true;
+                    ++index;
+                }
                 while (index < length && sanitized[index].isDigit()) {
                     exponentPart.append(sanitized[index]);
+                    ++index;
+                }
+                if (hadParens) {
+                    if (index >= length || (sanitized[index] != ')' && sanitized[index] != QChar(0xFF09))) {
+                        clear();
+                        return false;
+                    }
                     ++index;
                 }
                 if (exponentPart.isEmpty()) {
