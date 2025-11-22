@@ -17,7 +17,7 @@ This repository contains exciting experiments from our Data Structure course, sh
 - 🎨 Beautiful Qt-based graphical interface for smooth user interaction
 
 **The Tech Magic**:
-- **Data Structure**: Sparse polynomial representation using linked lists (降幂单链表)
+- **Data Structure**: Sparse polynomial representation using descending-order linked lists
 - **Core Algorithm**: Efficient term merging and fast exponentiation (O(log n) power calculation!)
 - **Language**: C++17 with Qt5/Qt6 Widgets
 - **Features**: 
